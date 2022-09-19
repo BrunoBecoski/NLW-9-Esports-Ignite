@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import { PrismaClient } from '@prisma/client'
+import { z } from 'zod';
 
 import { convertHourStringToMinutes } from './utils/convert-hour-string-to-minutes'
 import { convertMinutesToHourString } from './utils/convert-minutes-to-hour-string'
@@ -12,6 +13,17 @@ app.use(cors())
 
 const prisma = new PrismaClient({
   log: ['query']
+})
+
+const validationAd = z.object({
+  gameId: z.string().uuid(),
+  name: z.string().min(1),
+  yearsPlaying: z.number().nonnegative(),
+  discord: z.string().min(6).max(37).regex(/#[0-9]{4}$/),
+  weekDays: z.array(z.number()).nonempty().max(7),
+  hourStart: z.string().regex(/[0-9]{2}:[0-9]{2}/),
+  hourEnd: z.string().regex(/[0-9]{2}:[0-9]{2}/),
+  useVoiceChannel: z.boolean(),
 })
 
 app.get('/games', async (resquest, response) => {
@@ -32,20 +44,36 @@ app.post('/games/:id/ads', async (request, response) => {
   const gameId = request.params.id
   const body: any = request.body
 
-  const ad = await prisma.ad.create({
-    data: {
+  try {
+    validationAd.parse({
       gameId,
       name: body.name,
       yearsPlaying: body.yearsPlaying,
       discord: body.discord,
-      weekDays: body.weekDays.join(','),
-      hourStart: convertHourStringToMinutes(body.hourStart),
-      hourEnd: convertHourStringToMinutes(body.hourEnd),
+      weekDays: body.weekDays,
+      hourStart: body.hourStart,
+      hourEnd: body.hourEnd,
       useVoiceChannel: body.useVoiceChannel,
-    }
-  })
+    });
+    
 
-  return response.status(201).json(ad);
+    const ad = await prisma.ad.create({
+      data: {
+        gameId,
+        name: body.name,
+        yearsPlaying: body.yearsPlaying,
+        discord: body.discord,
+        weekDays: body.weekDays.join(','),
+        hourStart: convertHourStringToMinutes(body.hourStart),
+        hourEnd: convertHourStringToMinutes(body.hourEnd),
+        useVoiceChannel: body.useVoiceChannel,
+      }
+    })
+    
+    return response.status(201).json(ad);
+  } catch(err) {
+    return response.status(422).json(err);
+  }
 });
 
 app.get('/games/:id/ads', async (request, response) => {
