@@ -3,9 +3,10 @@ import axios from 'axios';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import * as Dialog from '@radix-ui/react-dialog';
+import * as Select from '@radix-ui/react-select';
 import * as Checkbox from '@radix-ui/react-checkbox';
 import * as ToogleGroup from '@radix-ui/react-toggle-group';
-import { Check, GameController } from 'phosphor-react';
+import { CaretDown, Check, GameController } from 'phosphor-react';
 
 import { Input } from './Form/Input';
 
@@ -29,6 +30,7 @@ export function CreateAdModal() {
   const [games, setGames] = useState<Game[]>([]);
   const [weekDays, setWeekDays] = useState<string[]>([]);
   const [useVoiceChannel, setUseVoiceChannel] = useState(false);
+  const [game, setGame] = useState('');
   const { register, handleSubmit } = useForm();
 
   const [err, setErr] = useState({} as Err);
@@ -85,6 +87,7 @@ export function CreateAdModal() {
     try {
      await schema.parseAsync({
         ...data,
+        game: game,
         weekDays: weekDays,
         useVoiceChannel: useVoiceChannel,
       })
@@ -111,21 +114,42 @@ export function CreateAdModal() {
       <Dialog.Overlay className="bg-black/60 inset-0 fixed" />
       <Dialog.Content className="fixed bg-[#2A2634] py-8 px-10 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg w-[480px] shadow-lg shadow-black/25">
         <Dialog.Title className="text-3xl font-black">Publique um anúncio</Dialog.Title>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4 overflow-hidden">
+          <div className="flex flex-col gap-2 m-0">
             <label htmlFor="game" className="font-semibold">Qual o game?</label>
-            <select 
-              className="bg-zinc-900 py-3 px-4 rounded text-sm placeholder:text-zinc-500 appearance-none"
-              defaultValue=""
-              {...register("game")}
+            <Select.Root
+              onValueChange={setGame}
             >
-              <option disabled value="">Selecione o game que deseja jogar</option>
-
-              { games.map(game => {
-                return <option key={game.id} value={game.id}>{game.title}</option>
-              })}
-            </select>
-          <span className="text-sm text-red-500">{err.game}</span>
+              <Select.Trigger 
+                className="flex justify-between items-center bg-zinc-900  py-3 px-4 rounded text-sm"
+              >
+                <Select.Value 
+                  placeholder="Selecione o game que deseja jogar"  
+                />
+                <Select.Icon>
+                  <CaretDown className="w-6 h-6 text-zinc-400" />
+                </Select.Icon>
+              </Select.Trigger>
+              <Select.Portal className="rounded overflow-hidden bg-red-500">
+                <Select.Content>
+                  <Select.ScrollUpButton />
+                  <Select.Viewport>
+                    <Select.Group className="text-white">
+                      { games.map(game => {
+                        return (
+                          <Select.Item key={game.id} value={game.id} className="py-3 px-4 cursor-pointer bg-zinc-900 hover:bg-zinc-500">
+                            <Select.ItemText>
+                              {game.title}
+                            </Select.ItemText>
+                          </Select.Item>
+                         )
+                       })}
+                    </Select.Group>
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
+            <span className="text-sm text-red-500">{err.game}</span>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -135,8 +159,7 @@ export function CreateAdModal() {
               placeholder="Como te chamam dentro do game?" 
               register={register("name")}
             />
-              <span className="text-sm text-red-500">{err.name}</span>
-
+            <span className="text-sm text-red-500">{err.name}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
