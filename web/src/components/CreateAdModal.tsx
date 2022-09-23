@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Select from '@radix-ui/react-select';
 import * as Checkbox from '@radix-ui/react-checkbox';
@@ -15,59 +16,8 @@ interface Game {
   title: string;
 }
 
-interface Err {
-  game: string;
-  name: string;
-  yearsPlaying: string;
-  discord: string;
-  weekDays: string;
-  hourStart: string;
-  hourEnd: string;
-  useVoiceChannel: string;
-}
-
 export function CreateAdModal() {
   const [games, setGames] = useState<Game[]>([]);
-  const [weekDays, setWeekDays] = useState<string[]>([]);
-  const [useVoiceChannel, setUseVoiceChannel] = useState(false);
-  const [game, setGame] = useState('');
-  const { register, handleSubmit } = useForm();
-
-  const [err, setErr] = useState({} as Err);
-
-  useEffect(() => {
-    axios('http://localhost:3333/games').then(response => {
-      setGames(response.data)
-    })
-  }, []);
-
-  // async function handleCreateAd(event: FormEvent) {
-  //   event.preventDefault();
-
-  //   const formData = new FormData(event.target as HTMLFormElement)
-  //   const data = Object.fromEntries(formData)
-
-  //   if(!data.name) {
-  //     return;
-  //   }
-
-  //   try {
-  //     // await axios.post(`http://localhost:3333/games/${data.game}/ads`, {
-  //     //   name: data.name,
-  //     //   yearsPlaying: Number(data.yearsPlaying),
-  //     //   discord: data.discord,
-  //     //   weekDays: weekDays.map(Number),
-  //     //   hourStart: data.hourStart,
-  //     //   hourEnd: data.hourEnd,
-  //     //   useVoiceChannel: useVoiceChannel,
-  //     // })
-
-  //     alert('Anúncio criado com successo!')
-  //   } catch (err) {
-  //     console.log(err)
-  //     alert('Erro ao criar o anúncio')
-  //   }
-  // }
 
   const schema = z.object({
     game: z.string().uuid('Selecione algum game'),
@@ -80,34 +30,38 @@ export function CreateAdModal() {
     useVoiceChannel: z.boolean(),
   })
 
+  type Schema = z.infer<typeof schema>;
+
+  const { register, handleSubmit, control, formState: { errors } } = useForm<Schema>({
+    resolver: zodResolver(schema)
+  });
+
+  useEffect(() => {
+    axios('http://localhost:3333/games').then(response => {
+      setGames(response.data)
+    })
+  }, []);
+
   async function onSubmit(data: any) {
+    console.log(data);
+    
+    // try {
+    //   await axios.post(`http://localhost:3333/games/${data.game}/ads`, {
+    //     name: data.name,
+    //     yearsPlaying: Number(data.yearsPlaying),
+    //     discord: data.discord,
+    //     weekDays: weekDays.map(Number),
+    //     hourStart: data.hourStart,
+    //     hourEnd: data.hourEnd,
+    //     useVoiceChannel: useVoiceChannel,
+    //   });
 
-    setErr({} as Err);
-
-    try {
-     await schema.parseAsync({
-        ...data,
-        game: game,
-        weekDays: weekDays,
-        useVoiceChannel: useVoiceChannel,
-      })
-      
-      
-    } catch(err) {
-      if(err) {
-        setErr({
-          game: JSON.parse(err.message).find(item => item.path[0] === 'game').message,
-          name: JSON.parse(err.message).find(item => item.path[0] === 'name').message,
-          discord: JSON.parse(err.message).find(item => item.path[0] === 'discord').message,
-          weekDays: JSON.parse(err.message).find(item => item.path[0] = item.path[0] === 'weekDays').message,
-          hourStart: JSON.parse(err.message).find(item => item.path[0] === 'hourStart').message,
-          hourEnd: JSON.parse(err.message).find(item => item.path[0] === 'hourEnd').message,
-          yearsPlaying: JSON.parse(err.message).find(item => item.path[0] === 'yearsPlaying').message,
-        })
-      }
-    }
+    //   alert('Anúncio criado com successo!')
+    // } catch (err) {
+    //   console.log(err)
+    //   alert('Erro ao criar o anúncio')
+    // }
   }
-;
 
   return (
     <Dialog.Portal>
@@ -117,183 +71,207 @@ export function CreateAdModal() {
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4 overflow-hidden">
           <div className="flex flex-col gap-2 m-0">
             <label htmlFor="game" className="font-semibold">Qual o game?</label>
-            <Select.Root
-              onValueChange={setGame}
+            <Controller
+              defaultValue=""
+              control={control}
+              name="game"
+              render={({
+                field: { onChange },
+                fieldState: { error },
+              }) =>
+                <Select.Root
+                  onValueChange={onChange}
+                  onOpenChange={console.clear}
+                >
+                  <Select.Trigger className="flex justify-between items-center bg-zinc-900  py-3 px-4 rounded text-sm">
+                    <Select.Value placeholder="Selecione o game que deseja jogar" />
+                    <Select.Icon>
+                      <CaretDown className="w-6 h-6 text-zinc-400" />
+                    </Select.Icon>
+                  </Select.Trigger>
+                  <Select.Portal className="rounded overflow-hidden">
+                    <Select.Content>
+                      <Select.Viewport>
+                        <Select.Group className="text-white">
+                          {games.map(game => {
+                            return (
+                              <Select.Item key={game.id} value={game.id} className="py-3 px-4 cursor-pointer bg-zinc-900 hover:bg-zinc-600">
+                                <Select.ItemText>
+                                  {game.title}
+                                </Select.ItemText>
+                              </Select.Item>
+                            )
+                          })}
+                        </Select.Group>
+                      </Select.Viewport>
+                    </Select.Content>
+                  </Select.Portal>
+                </Select.Root>
+              }
             >
-              <Select.Trigger 
-                className="flex justify-between items-center bg-zinc-900  py-3 px-4 rounded text-sm"
-              >
-                <Select.Value 
-                  placeholder="Selecione o game que deseja jogar"  
-                />
-                <Select.Icon>
-                  <CaretDown className="w-6 h-6 text-zinc-400" />
-                </Select.Icon>
-              </Select.Trigger>
-              <Select.Portal className="rounded overflow-hidden bg-red-500">
-                <Select.Content>
-                  <Select.ScrollUpButton />
-                  <Select.Viewport>
-                    <Select.Group className="text-white">
-                      { games.map(game => {
-                        return (
-                          <Select.Item key={game.id} value={game.id} className="py-3 px-4 cursor-pointer bg-zinc-900 hover:bg-zinc-500">
-                            <Select.ItemText>
-                              {game.title}
-                            </Select.ItemText>
-                          </Select.Item>
-                         )
-                       })}
-                    </Select.Group>
-                  </Select.Viewport>
-                </Select.Content>
-              </Select.Portal>
-            </Select.Root>
-            <span className="text-sm text-red-500">{err.game}</span>
+            </Controller>
+            <span className="text-sm text-red-500">{errors.game?.message}</span>
           </div>
 
           <div className="flex flex-col gap-2">
             <label htmlFor="name" className="font-semibold">Seu nome (ou nickname)</label>
-            <Input 
+            <Input
               id="name"
-              placeholder="Como te chamam dentro do game?" 
+              placeholder="Como te chamam dentro do game?"
               register={register("name")}
             />
-            <span className="text-sm text-red-500">{err.name}</span>
+            <span className="text-sm text-red-500">{errors.name?.message}</span>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
               <label htmlFor="yearsPlaying" className="font-semibold">Joga há quantos anos?</label>
-              <Input 
+              <Input
                 id="yearsPlaying"
                 type="number"
                 min="0"
                 placeholder="Tudo bem ser ZERO?"
                 register={register("yearsPlaying")}
-              /> 
-              <span className="text-sm text-red-500">{err.yearsPlaying}</span>
+              />
+              <span className="text-sm text-red-500">{errors.yearsPlaying?.message}</span>
 
             </div>
             <div className="flex flex-col gap-2">
               <label htmlFor="discord" className="font-semibold">Qual seu Discord?</label>
-              <Input 
+              <Input
                 id="discord"
                 placeholder="Usuario#0000"
                 register={register("discord")}
               />
-              <span className="text-sm text-red-500">{err.discord}</span>
+              <span className="text-sm text-red-500">{errors.discord?.message}</span>
             </div>
           </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="weekDays" className="font-semibold">Quanto costuma jogar?</label>
+          <div className="flex flex-col gap-2">
+            <label htmlFor="weekDays" className="font-semibold">Quanto costuma jogar?</label>
+            <Controller
+              defaultValue={[]}
+              control={control}
+              name="weekDays"
+              render={({
+                field: { onChange, value },
+              }) =>
+                <ToogleGroup.Root
+                  type="multiple"
+                  className="flex justify-between gap-1"
+                  onValueChange={onChange}
+                >
+                  <ToogleGroup.Item
+                    value="0"
+                    title="Domingo"
+                    className={`w-11 h-11 font-bold rounded ${value.includes('0') ? 'bg-violet-500' : 'bg-zinc-900'}`}
+                  >
+                    D
+                  </ToogleGroup.Item>
 
-              <ToogleGroup.Root
-                type="multiple"
-                className="flex justify-between gap-1"
-                value={weekDays}
-                onValueChange={setWeekDays}
-              >
-                <ToogleGroup.Item
-                  value="0"
-                  title="Domingo"
-                  className={`w-11 h-11 font-bold rounded ${weekDays.includes('0') ? 'bg-violet-500' : 'bg-zinc-900' }`}
-                >
-                  D
-                </ToogleGroup.Item>
-                
-                <ToogleGroup.Item
-                  value="1"
-                  title="Segunda"
-                  className={`w-11 h-11 font-bold rounded ${weekDays.includes('1') ? 'bg-violet-500' : 'bg-zinc-900' }`}
-                >
-                  S
-                </ToogleGroup.Item>
-                
-                <ToogleGroup.Item
-                  value="2"
-                  title="Terça"
-                  className={`w-11 h-11 font-bold rounded ${weekDays.includes('2') ? 'bg-violet-500' : 'bg-zinc-900' }`}
-                >
-                  T
-                </ToogleGroup.Item>
-                
-                <ToogleGroup.Item
-                  value="3"
-                  title="Quarta"
-                  className={`w-11 h-11 font-bold rounded ${weekDays.includes('3') ? 'bg-violet-500' : 'bg-zinc-900' }`}
-                >
-                  Q
-                </ToogleGroup.Item>
-                
-                <ToogleGroup.Item
-                  value="4"
-                  title="Quinta"
-                  className={`w-11 h-11 font-bold rounded ${weekDays.includes('4') ? 'bg-violet-500' : 'bg-zinc-900' }`}
-                >
-                  Q
-                </ToogleGroup.Item>
-                
-                <ToogleGroup.Item
-                  value="5"
-                  title="Sexta"
-                  className={`w-11 h-11 font-bold rounded ${weekDays.includes('5') ? 'bg-violet-500' : 'bg-zinc-900' }`}
-                >
-                  S
-                </ToogleGroup.Item>
-                
-                <ToogleGroup.Item
-                  value="6"
-                  title="Sábado"
-                  className={`w-11 h-11 font-bold rounded ${weekDays.includes('6') ? 'bg-violet-500' : 'bg-zinc-900' }`}
-                >
-                  S
-                </ToogleGroup.Item>
-              </ToogleGroup.Root>
-              <span className="text-sm text-red-500">{err.weekDays}</span>
-            </div>
+                  <ToogleGroup.Item
+                    value="1"
+                    title="Segunda"
+                    className={`w-11 h-11 font-bold rounded ${value.includes('1') ? 'bg-violet-500' : 'bg-zinc-900'}`}
+                  >
+                    S
+                  </ToogleGroup.Item>
 
-            <div className="flex flex-col gap-2 flex-1">
-              <label htmlFor="hourStart" className="font-semibold">Qual horário do dia?</label>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="hourStart" className="text-sm">De</label>
-                  <Input
-                    id="hourStart"
-                    type="time"
-                    register={register("hourStart")}
-                  />
-                  <span className="text-sm text-red-500">{err.hourStart}</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label htmlFor="hourEnd" className="text-sm">Até</label>
-                  <Input
-                    id="hourEnd"
-                    type="time"
-                    register={register("hourEnd")}
-                  />
-                  <span className="text-sm text-red-500">{err.hourEnd}</span>
-                </div>
+                  <ToogleGroup.Item
+                    value="2"
+                    title="Terça"
+                    className={`w-11 h-11 font-bold rounded ${value.includes('2') ? 'bg-violet-500' : 'bg-zinc-900'}`}
+                  >
+                    T
+                  </ToogleGroup.Item>
+
+                  <ToogleGroup.Item
+                    value="3"
+                    title="Quarta"
+                    className={`w-11 h-11 font-bold rounded ${value.includes('3') ? 'bg-violet-500' : 'bg-zinc-900'}`}
+                  >
+                    Q
+                  </ToogleGroup.Item>
+
+                  <ToogleGroup.Item
+                    value="4"
+                    title="Quinta"
+                    className={`w-11 h-11 font-bold rounded ${value.includes('4') ? 'bg-violet-500' : 'bg-zinc-900'}`}
+                  >
+                    Q
+                  </ToogleGroup.Item>
+
+                  <ToogleGroup.Item
+                    value="5"
+                    title="Sexta"
+                    className={`w-11 h-11 font-bold rounded ${value.includes('5') ? 'bg-violet-500' : 'bg-zinc-900'}`}
+                  >
+                    S
+                  </ToogleGroup.Item>
+
+                  <ToogleGroup.Item
+                    value="6"
+                    title="Sábado"
+                    className={`w-11 h-11 font-bold rounded ${value.includes('6') ? 'bg-violet-500' : 'bg-zinc-900'}`}
+                  >
+                    S
+                  </ToogleGroup.Item>
+                </ToogleGroup.Root>
+              }
+            >
+            </Controller>
+            <span className="text-sm text-red-500">{errors.weekDays?.message}</span>
+          </div>
+
+          <div className="flex flex-col gap-2 flex-1">
+            <label htmlFor="hourStart" className="font-semibold">Qual horário do dia?</label>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex flex-col gap-1">
+                <label htmlFor="hourStart" className="text-sm">De</label>
+                <Input
+                  id="hourStart"
+                  type="time"
+                  register={register("hourStart")}
+                />
+                <span className="text-sm text-red-500">{errors.hourStart?.message}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label htmlFor="hourEnd" className="text-sm">Até</label>
+                <Input
+                  id="hourEnd"
+                  type="time"
+                  register={register("hourEnd")}
+                />
+                <span className="text-sm text-red-500">{errors.hourEnd?.message}</span>
               </div>
             </div>
+          </div>
 
           <label className="mt-2 flex items-center gap-2 text-sm cursor-pointer">
-            <Checkbox.Root
-              checked={useVoiceChannel}
-              onCheckedChange={(checked) => {
-                if(checked === true) {
-                  setUseVoiceChannel(true)
-                } else {
-                  setUseVoiceChannel(false)
-                }
-              }}
-              className="w-6 h-6 p-1 rounded bg-zinc-900"
-            >
-              <Checkbox.Indicator>
-                <Check className="w-4 h-4 text-emerald-400" />
-              </Checkbox.Indicator>
-            </Checkbox.Root>
+            <Controller
+              defaultValue={false}
+              control={control}
+              name="checked"
+              render={({
+                field: { onChange, value },
+              }) =>
+                <Checkbox.Root
+                  checked={value}
+                  onCheckedChange={(checked) => {
+                    if (checked === true) {
+                      onChange(true)
+                    } else {
+                      onChange(false)
+                    }
+                  }}
+                  className="w-6 h-6 p-1 rounded bg-zinc-900"
+                >
+                  <Checkbox.Indicator>
+                    <Check className="w-4 h-4 text-emerald-400" />
+                  </Checkbox.Indicator>
+                </Checkbox.Root>
+              }
+            />
             Costumo me conectar ao chat de voz
           </label>
 
@@ -304,7 +282,7 @@ export function CreateAdModal() {
             >
               Cancelar
             </Dialog.Close>
-            <button 
+            <button
               type="submit"
               className="bg-violet-500 px-5 h-12 rounded-md font-semibold flex items-center gap-3 hover:bg-violet-600"
             >
