@@ -33,7 +33,17 @@ export function CreateAdModal() {
   type Schema = z.infer<typeof schema>;
 
   const { register, handleSubmit, control, formState: { errors } } = useForm<Schema>({
-    resolver: zodResolver(schema)
+    resolver: zodResolver(schema),
+    defaultValues: {
+      game: '',
+      name: '',
+      yearsPlaying: '',
+      discord: '',
+      weekDays: [''],
+      hourStart: '',
+      hourEnd: '',
+      useVoiceChannel: false,
+    }
   });
 
   useEffect(() => {
@@ -42,42 +52,39 @@ export function CreateAdModal() {
     })
   }, []);
 
-  async function onSubmit(data: any) {
-    console.log(data);
-    
-    // try {
-    //   await axios.post(`http://localhost:3333/games/${data.game}/ads`, {
-    //     name: data.name,
-    //     yearsPlaying: Number(data.yearsPlaying),
-    //     discord: data.discord,
-    //     weekDays: weekDays.map(Number),
-    //     hourStart: data.hourStart,
-    //     hourEnd: data.hourEnd,
-    //     useVoiceChannel: useVoiceChannel,
-    //   });
+  async function onSubmit(data: Schema) {   
+    try {
+      await axios.post(`http://localhost:3333/games/${data.game}/ads`, {
+        name: data.name,
+        yearsPlaying: Number(data.yearsPlaying),
+        discord: data.discord,
+        weekDays: data.weekDays.map(Number),
+        hourStart: data.hourStart,
+        hourEnd: data.hourEnd,
+        useVoiceChannel: data.useVoiceChannel,
+      });
 
-    //   alert('Anúncio criado com successo!')
-    // } catch (err) {
-    //   console.log(err)
-    //   alert('Erro ao criar o anúncio')
-    // }
+      alert('Anúncio criado com successo!')
+    } catch (err) {
+      console.log(err)
+      alert('Erro ao criar o anúncio')
+    }
   }
 
   return (
-    <Dialog.Portal>
+    <Dialog.Portal >
       <Dialog.Overlay className="bg-black/60 inset-0 fixed" />
       <Dialog.Content className="fixed bg-[#2A2634] py-8 px-10 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg w-[480px] shadow-lg shadow-black/25">
         <Dialog.Title className="text-3xl font-black">Publique um anúncio</Dialog.Title>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4 overflow-hidden">
           <div className="flex flex-col gap-2 m-0">
             <label htmlFor="game" className="font-semibold">Qual o game?</label>
+            {/* @ts-ignore */}
             <Controller
-              defaultValue=""
               control={control}
               name="game"
               render={({
                 field: { onChange },
-                fieldState: { error },
               }) =>
                 <Select.Root
                   onValueChange={onChange}
@@ -149,8 +156,8 @@ export function CreateAdModal() {
 
           <div className="flex flex-col gap-2">
             <label htmlFor="weekDays" className="font-semibold">Quanto costuma jogar?</label>
+            {/* @ts-ignore */}
             <Controller
-              defaultValue={[]}
               control={control}
               name="weekDays"
               render={({
@@ -160,6 +167,7 @@ export function CreateAdModal() {
                   type="multiple"
                   className="flex justify-between gap-1"
                   onValueChange={onChange}
+                  value={value}
                 >
                   <ToogleGroup.Item
                     value="0"
@@ -249,9 +257,8 @@ export function CreateAdModal() {
 
           <label className="mt-2 flex items-center gap-2 text-sm cursor-pointer">
             <Controller
-              defaultValue={false}
               control={control}
-              name="checked"
+              name="useVoiceChannel"
               render={({
                 field: { onChange, value },
               }) =>
