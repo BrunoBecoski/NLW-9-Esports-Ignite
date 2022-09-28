@@ -1,4 +1,5 @@
-import { GameController } from "phosphor-react";
+import * as Dialog from '@radix-ui/react-dialog';
+import { GameController } from 'phosphor-react';
 
 import { AdData } from "../pages/Ad";
 
@@ -36,10 +37,10 @@ export function AdCard({ ad }: AdCardProps) {
         </span>
       </div>
 
-      <button className="flex gap-2 justify-center p-2 w-full rounded-lg bg-violet-500 hover:bg-violet-600 text-white font-semibold">
+      <Dialog.Trigger className="flex gap-2 justify-center p-2 w-full rounded-lg bg-violet-500 hover:bg-violet-600 text-white font-semibold">
         <GameController className="w-5 h-5"/>
         Conectar
-      </button>
+      </Dialog.Trigger>
     </div>
   )
 }
