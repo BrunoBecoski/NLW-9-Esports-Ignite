@@ -47,14 +47,14 @@ export function CreateAdModal() {
   });
 
   useEffect(() => {
-    axios('http://localhost:3333/games').then(response => {
+    axios('http://192.168.1.106:3333/games').then(response => {
       setGames(response.data)
     })
   }, []);
 
   async function onSubmit(data: Schema) {   
     try {
-      await axios.post(`http://localhost:3333/games/${data.game}/ads`, {
+      await axios.post(`http://192.168.1.106:3333/games/${data.game}/ads`, {
         name: data.name,
         yearsPlaying: Number(data.yearsPlaying),
         discord: data.discord,
@@ -72,11 +72,11 @@ export function CreateAdModal() {
   }
 
   return (
-    <Dialog.Portal >
+    <Dialog.Portal>
       <Dialog.Overlay className="bg-black/60 inset-0 fixed" />
-      <Dialog.Content className="fixed bg-[#2A2634] py-8 px-10 text-white top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-lg w-[480px] shadow-lg shadow-black/25">
+      <Dialog.Content className=" md:w-[480px] w-full md:h-fit md:max-h-[80%] fixed overflow-y-auto bg-[#2A2634] py-8 px-10 text-white md:top-1/2 md:left-1/2 inset-0 md:-translate-x-1/2 translate-x-0 md:-translate-y-1/2 translate-y-0 md:rounded-lg rounded-none shadow-lg shadow-black/25">
         <Dialog.Title className="text-3xl font-black">Publique um anúncio</Dialog.Title>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4 overflow-hidden">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-4 md:overflow-hidden">
           <div className="flex flex-col gap-2 m-0">
             <label htmlFor="game" className="font-semibold">Qual o game?</label>
             {/* @ts-ignore */}
@@ -282,16 +282,16 @@ export function CreateAdModal() {
             Costumo me conectar ao chat de voz
           </label>
 
-          <footer className="mt-4 flex justify-end gap-4">
+          <footer className="mt-4 flex flex-nowrap justify-end gap-4">
             <Dialog.Close
               type="button"
-              className="bg-zinc-500 px-5 h-12 rounded-md font-semibold hover:bg-zinc-600"
+              className="bg-zinc-500 md:px-5 px-3 h-12 rounded-md font-semibold hover:bg-zinc-600"
             >
               Cancelar
             </Dialog.Close>
             <button
               type="submit"
-              className="bg-violet-500 px-5 h-12 rounded-md font-semibold flex items-center gap-3 hover:bg-violet-600"
+              className="bg-violet-500 md:px-5 px-3  h-12 rounded-md font-semibold flex items-center gap-3 hover:bg-violet-600"
             >
               <GameController className="w-6 h-6" />
               Encontrar duo

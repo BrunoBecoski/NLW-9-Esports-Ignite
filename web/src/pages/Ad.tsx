@@ -44,7 +44,7 @@ export function Ad() {
   const [ads, setAds] = useState<AdData[]>([]);
 
   useEffect(() => {
-    axios(`http://localhost:3333/games/${id}/ads`).then(response => {
+    axios(`http://192.168.1.106:3333/games/${id}/ads`).then(response => {
       setGame(response.data.game);
       setAds(response.data.ads);
     }) 

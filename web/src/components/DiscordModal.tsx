@@ -11,7 +11,7 @@ export function DiscordModal({ id }: DiscordModalProps) {
   const [discord, setDiscord] = useState('');
 
   useEffect(() => {
-    axios.get(`http://localhost:3333/ads/${id}/discord`)
+    axios.get(`http://192.168.1.106:3333/ads/${id}/discord`)
       .then(response => setDiscord(response.data.discord));
   }, []);
 
