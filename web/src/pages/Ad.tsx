@@ -27,9 +27,17 @@ export function Ad() {
 
   const sliderOptions = {
     slides: {
-      perView: 6,
-      spacing: 24,
-    }, 
+      perView: 1.5,
+      spacing: 16,
+    },
+    breakpoints: {
+      '(min-width: 768px)': {
+        slides: {
+          perView: 6,
+          spacing: 24,
+        }
+      }
+    }
   }
  
   const [ sliderRef, instanceRef ] = useKeenSlider<HTMLDivElement>(sliderOptions);
@@ -51,12 +59,12 @@ export function Ad() {
   }, []);
 
   return (
-    <div className="max-w-[1344px] mx-auto my-10 px-4">
-      <img src={game.bannerUrl} className="h-[40vh] rounded-lg mx-auto" />
-      <div className="my-10 text-center">
-        <strong className="text-white font-black text-2xl block">{game.title}</strong>
-        <span className="text-zinc-400 block">Conecte-se e comece a jogar!</span>
-      </div>
+    <div className="max-w-[1344px] mx-auto md:my-10 my-5 px-4">
+        <img src={game.bannerUrl} className="md:h-[40vh] h-[30vh] rounded-lg mx-auto" />
+        <div className="md:my-10 my-5 text-center">
+          <strong className="block text-white font-black text-2xl">{game.title}</strong>
+          <span className="block text-zinc-400">Conecte-se e comece a jogar!</span>
+        </div>
 
       <div ref={sliderRef} className="overflow-hidden flex">
         { ads.map(ad => ( 
