@@ -55,7 +55,7 @@ export function Home() {
             contentContainerStyle={styles.contentList}
           />
           
-          <CreateAdBanner />
+          <CreateAdBanner games={games} />
         </SafeAreaView>
       </ScrollView>
     </Background>

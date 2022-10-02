@@ -15,20 +15,19 @@ export const styles = StyleSheet.create({
     backgroundColor: '#2A2634',
   },
   title: {
-    fontSize: 20,
+    fontSize: THEME.FONT_SIZE.LG,
     fontWeight: '900',
     textAlign: 'center',
     color: THEME.COLORS.TEXT,
   },
   subtitle: {
     marginTop: 8,
-    fontSize: 14,
+    fontSize: THEME.FONT_SIZE.SM,
     textAlign: 'center',
     color: THEME.COLORS.CAPTION_400,
   },
   button: {
     width: '100%',
-    display: 'flex',
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -39,7 +38,7 @@ export const styles = StyleSheet.create({
   },
   buttonTitle: {
     marginLeft: 12,
-    fontWeight: '500',
+    fontWeight: '600',
     color: THEME.COLORS.TEXT,
   }
 });
