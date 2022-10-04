@@ -36,6 +36,11 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
     color: THEME.COLORS.TEXT,
   },
+  error: {
+    marginTop: 8,
+    color: THEME.COLORS.ALERT,
+    fontSize: THEME.FONT_SIZE.SM,
+  },
   timeWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -80,7 +85,6 @@ export const styles = StyleSheet.create({
     color: THEME.COLORS.TEXT,
     fontWeight: 'bold',
   },
-
   checkboxWrapper: {
     flexDirection: 'row',
     marginVertical: 24,
